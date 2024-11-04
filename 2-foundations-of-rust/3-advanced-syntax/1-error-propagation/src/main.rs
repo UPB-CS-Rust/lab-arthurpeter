@@ -18,33 +18,63 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader, Lines};
 
 //change this into:
-//fn read_lines(filename: &str) -> Result<Lines<BufReader<File>>, io::Error> {
-fn read_lines(filename: &str) -> Lines<BufReader<File>> {
-    let file = File::open(filename).unwrap(); // this can easily fail
-    BufReader::new(file).lines()
+fn read_lines(filename: &str) -> Result<Lines<BufReader<File>>, io::Error> {
+//fn read_lines(filename: &str) -> Lines<BufReader<File>> {
+    let file = File::open(filename); // this can easily fail
+    match file {
+        Err(e) => return Err(e),
+        Ok(f) => {
+            return Ok(BufReader::new(f).lines());
+        }
+    }
+    //Ok(BufReader::new(file).lines())
 }
 
 //change this into:
-//fn count_bytes_and_lines(filename: &str) -> Result<(usize, usize, usize), io::Error> {
-fn count_bytes_and_lines(filename: &str) -> (usize, usize, usize) {
+fn count_bytes_and_lines(filename: &str) -> Result<(usize, usize, usize), io::Error> {
+//fn count_bytes_and_lines(filename: &str) -> (usize, usize, usize) {
     let lines = read_lines(filename);
-    let mut line_count = 0;
-    let mut word_count = 0;
-    let mut byte_count = 0;
-    for line in lines {
-        let text = line.unwrap(); // this will usually not fail
-        line_count += 1;
-        word_count += text.split_whitespace().count();
-        byte_count += text.len();
-    }
+    match lines {
+        Err(e) => {
+            //eprintln!("Error reading file: {}", e);
+            return Err(e);
+        }
+        Ok(l) => {
+            let mut line_count = 0;
+            let mut word_count = 0;
+            let mut byte_count = 0;
+            for line in l {
+                let text = line;
+                match text {
+                    Err(e) => {
+                        //eprintln!("Error reading line: {}", e);
+                        return Err(e);
+                    }
+                    Ok(t) => {
+                        line_count += 1;
+                        word_count += t.split_whitespace().count();
+                        byte_count += t.len();
+                    }
+                }
+            }
 
-    (line_count, word_count, byte_count)
+            Ok((line_count, word_count, byte_count))
+        }
+    }
+    
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let filename = &args[1];
-
-    let (lines, words, bytes) = count_bytes_and_lines(filename);
-    println!("{filename}: {lines} lines, {words} words, {bytes} bytes");
+    let result = count_bytes_and_lines(filename);
+    match result {
+        Err(e) => {
+            eprintln!("Error counting bytes and lines: {}", e);
+            return;
+        }
+        Ok((lines, words, bytes)) => {
+            println!("{filename}: {lines} lines, {words} words, {bytes} bytes");
+        }
+    }  
 }
