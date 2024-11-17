@@ -27,7 +27,6 @@ fn read_lines(filename: &str) -> Result<Lines<BufReader<File>>, io::Error> {
             return Ok(BufReader::new(f).lines());
         }
     }
-    //Ok(BufReader::new(file).lines())
 }
 
 //change this into:
@@ -36,7 +35,6 @@ fn count_bytes_and_lines(filename: &str) -> Result<(usize, usize, usize), io::Er
     let lines = read_lines(filename);
     match lines {
         Err(e) => {
-            //eprintln!("Error reading file: {}", e);
             return Err(e);
         }
         Ok(l) => {
@@ -47,7 +45,6 @@ fn count_bytes_and_lines(filename: &str) -> Result<(usize, usize, usize), io::Er
                 let text = line;
                 match text {
                     Err(e) => {
-                        //eprintln!("Error reading line: {}", e);
                         return Err(e);
                     }
                     Ok(t) => {
