@@ -7,6 +7,7 @@
 ///
 /// - We have added the form "Summation(Vec<Expr>)", representing the sum of a list of expressions.
 /// Question: why can we get away with Vec<Expr> enough in that case, instead of Box<Vec<Expr>> ?
+/// R: Vec<Expr> is enough because Vec is already a heap-allocated type, so we don't need to box it.
 ///
 /// - EXTRA: Since division can fail, the function eval needs to return an Option<i64>, where None indicates that a division by
 ///   zero has occurred. Can you change the code so that that errors are propagated correctly? (hint: use the ? syntax).
@@ -20,6 +21,7 @@ enum Expr {
     Div(Box<Expr>, Box<Expr>),
     Var,
     Summation(Vec<Expr>),
+    Signma(Box<Expr>, Box<Expr>),
 }
 
 // inject these two identifiers directly into the current namespace
@@ -43,6 +45,10 @@ fn mul(x: Expr, y: Expr) -> Expr {
 
 fn div(x: Expr, y: Expr) -> Expr {
     Expr::Div(Box::new(x), Box::new(y))
+}
+
+fn sigma(x: Expr, y: Expr) -> Expr {
+    Expr::Signma(Box::new(x), Box::new(y))
 }
 
 // ...
@@ -72,6 +78,19 @@ fn eval(expr: &Expr, var: i64) -> Option<i64> {
             }
             Some(acc)
         }
+
+        Signma(lhs, rhs) => {
+            if eval(lhs, var)? > eval(rhs, var)? {
+                None
+            } else {
+                let mut acc = 0;
+                for i in eval(lhs, var)?..=eval(rhs, var)? {
+                    acc += i;
+                }
+                Some(acc)
+            }
+            
+        }
     }
 }
 
@@ -94,7 +113,8 @@ fn main() {
     test(Summation(vec![Var, Const(1)]));
     test(mul(Const(2), Const(3)));
     test(div(Const(6), Const(2)));
-    test(div(Const(6), Const(0))); 
+    test(div(Const(6), Const(0)));
+    test(sigma(Const(1), Const(6)));
 }
 
 #[cfg(test)]

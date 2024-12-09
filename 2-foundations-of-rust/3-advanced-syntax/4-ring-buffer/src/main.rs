@@ -12,7 +12,7 @@
 
 // 3) change the method 'new()' into 'new(size: usize)' that initializes a ring buffer of the given size (instead of a fixed size of 16); use the 'make_box' function.
 
-// 4) in a queue that has size N, how many elements can be stored at one time? (test your answer experimentally)
+// 4) in a queue that has size N, how many elements can be stored at one time? (test your answer experimentally) / R: N - 1
 
 // 5) EXTRA EXERCISES:
 //  - add a method "has_room" so that "queue.has_room()" is true if and only if writing to the queue will succeed
@@ -61,6 +61,18 @@ impl RingBuffer {
             true
         }
     }
+
+    fn has_room(&self) -> bool {
+        (self.end + 1) % self.data.len() != self.start
+    }
+
+    fn peek(&self) -> Option<u8> {
+        if self.start == self.end {
+            None
+        } else {
+            Some(self.data[self.start])
+        }
+    }
 }
 
 /// This function creates an "owned slice" a user-selectable size by allocating it as a vector (filled with zeros) using vec![], and then turning it
@@ -81,7 +93,7 @@ impl Iterator for RingBuffer {
 }
 
 fn main() {
-    let mut queue = RingBuffer::new(11);
+    let mut queue = RingBuffer::new(12);
     assert!(queue.write(1));
     assert!(queue.write(2));
     assert!(queue.write(3));
@@ -92,6 +104,8 @@ fn main() {
     assert!(queue.write(3));
     assert!(queue.write(4));
     assert!(queue.write(5));
+    assert!(queue.peek() == Some(1));
+    assert!(queue.has_room());
     for elem in queue {
         println!("{elem}");
     }

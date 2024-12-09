@@ -27,6 +27,24 @@ trait DeserializeConfig {
 
 // TODO add some types that implement `DeserializeConfig`
 
+struct JsonFile {
+}
+
+struct YamlFile {
+}
+
+impl DeserializeConfig for JsonFile {
+    fn deserialize<'a>(&self, contents: &'a str) -> Result<Config<'a>, Error> {
+        serde_json::from_str(contents).map_err(Error::Json)
+    }
+}
+
+impl DeserializeConfig for YamlFile {
+    fn deserialize<'a>(&self, contents: &'a str) -> Result<Config<'a>, Error> {
+        serde_yaml::from_str(contents).map_err(Error::Yaml)
+    }
+}
+
 fn main() {
     let mut args = std::env::args();
     // Unwrapping is OK here, as UTF-8 Strings can always be converted to PathBufs
@@ -45,7 +63,18 @@ fn main() {
         }
     };
 
-    let config: Config = todo!("Deserialize `file_contents` using either serde_yaml or serde_json depending on the file extension. Use dynamic dispatch");
+    let json = JsonFile {};
+    let yaml = YamlFile {};
+
+    let config: Config = match _extension {
+        Some("json") => json.deserialize(&file_contents).unwrap(),
+        Some("yml") | Some("yaml") => yaml.deserialize(&file_contents).unwrap(),
+        _ => {
+            eprintln!("Unsupported file extension");
+            return;
+        }
+        
+    };
 
     println!("Config was: {config:?}");
 }
